@@ -16,6 +16,8 @@ typedef struct {
     uint64_t pc_status_ms;
     uint64_t state_since_ms;
     uint64_t toast_until_ms;
+    uint64_t down_click_ms;          // 上次下键单击时刻(0=无)
+    uint64_t down_enter_pending_ms;  // 待发回车的时刻(0=无)
     char toast[APP_TOAST_MAX];
 } app_state_t;
 void app_state_init(app_state_t *s);
