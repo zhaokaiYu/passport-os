@@ -215,10 +215,11 @@ size_t app_protocol_device_status(char *buf, size_t cap, uint32_t drop_count) {
 }
 
 size_t app_protocol_key_action(char *buf, size_t cap, app_key_action_t action) {
-    const char *name = "enter";
-    if (action == APP_KEY_CLEAR)      name = "clear";
-    else if (action == APP_KEY_PASTE) name = "paste";
-    else if (action == APP_KEY_COPY)  name = "copy";
+   const char *name = "enter";
+    if (action == APP_KEY_CLEAR)          name = "clear";
+    else if (action == APP_KEY_PASTE)     name = "paste";
+    else if (action == APP_KEY_COPY)      name = "copy";
+    else if (action == APP_KEY_BACKSPACE) name = "backspace";
     cJSON *o = cJSON_CreateObject();
     cJSON_AddStringToObject(o, "event", "key.action");
     cJSON_AddStringToObject(o, "action", name);
