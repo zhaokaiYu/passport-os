@@ -88,10 +88,19 @@ void app_state_reduce(app_state_t *s, const app_event_t *ev, uint64_t now, app_a
         // or after the PC heartbeat expires. Release ADC readings are not key IDs.
         if (ev->u.key.btn == APP_BTN_DOWN && s->state == APP_ST_READY &&
             s->link_up && s->pc_ready) {
-            out[(*n)++] = (app_action_t){.type = APP_ACT_SEND_KEY_ACTION,
-                .u.key_action.action = APP_KEY_ENTER};
-            snprintf(s->toast, sizeof(s->toast), "已发送回车");
-            s->toast_until_ms = now + 1500;
+            // 组件层未配置双击窗口(bc={0}),这里用两次 CLICK 间隔自行判定:
+            // 350ms 内的第二击 = 退格,并取消待发的回车。
+            if (s->down_click_ms != 0 && now - s->down_click_ms < 350) {
+                s->down_click_ms = 0;
+                s->down_enter_pending_ms = 0;
+                out[(*n)++] = (app_action_t){.type = APP_ACT_SEND_KEY_ACTION,
+                    .u.key_action.action = APP_KEY_BACKSPACE};
+                snprintf(s->toast, sizeof(s->toast), "已删一字");
+                s->toast_until_ms = now + 1500;
+            } else {
+                s->down_click_ms = now;
+                s->down_enter_pending_ms = now;   // 350ms 后由 TICK 发出
+            }
         } else if (ev->u.key.btn == APP_BTN_OK && s->state == APP_ST_READY &&
                    s->link_up && s->pc_ready) {
             out[(*n)++] = (app_action_t){.type = APP_ACT_SEND_KEY_ACTION,
@@ -101,17 +110,11 @@ void app_state_reduce(app_state_t *s, const app_event_t *ev, uint64_t now, app_a
         }
         break;
     case APP_EV_KEY_DOUBLE:
-        if (ev->u.key.btn == APP_BTN_OK && s->state == APP_ST_READY &&
+       if (ev->u.key.btn == APP_BTN_OK && s->state == APP_ST_READY &&
             s->link_up && s->pc_ready) {
             out[(*n)++] = (app_action_t){.type = APP_ACT_SEND_KEY_ACTION,
                 .u.key_action.action = APP_KEY_PASTE};
             snprintf(s->toast, sizeof(s->toast), "已粘贴");
-            s->toast_until_ms = now + 1500;
-        } else if (ev->u.key.btn == APP_BTN_DOWN && s->state == APP_ST_READY &&
-                   s->link_up && s->pc_ready) {
-            out[(*n)++] = (app_action_t){.type = APP_ACT_SEND_KEY_ACTION,
-                .u.key_action.action = APP_KEY_BACKSPACE};
-            snprintf(s->toast, sizeof(s->toast), "已删一字");
             s->toast_until_ms = now + 1500;
         }
         break;
@@ -131,6 +134,18 @@ void app_state_reduce(app_state_t *s, const app_event_t *ev, uint64_t now, app_a
             end_voice(s, now, false, out, n);
             snprintf(s->toast, sizeof(s->toast), "已暂停，请松开上键");
             s->toast_until_ms = now + 4000;
+        }
+        if (s->down_enter_pending_ms != 0 &&
+            now - s->down_enter_pending_ms >= 350) {
+            const bool can_send = s->state == APP_ST_READY && s->link_up && s->pc_ready;
+            s->down_enter_pending_ms = 0;
+            s->down_click_ms = 0;
+            if (can_send) {
+                out[(*n)++] = (app_action_t){.type = APP_ACT_SEND_KEY_ACTION,
+                    .u.key_action.action = APP_KEY_ENTER};
+                snprintf(s->toast, sizeof(s->toast), "已发送回车");
+                s->toast_until_ms = now + 1500;
+            }
         }
         break;
     case APP_EV_TIME_SET:
