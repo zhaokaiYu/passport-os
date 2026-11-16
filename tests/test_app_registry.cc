@@ -188,9 +188,12 @@ int main(){
  app_registry_switch_to(APP_ID_HOME);app_registry_switch_to(APP_ID_XIAOZHI);
  app_registry_switch_to(APP_ID_HOME);app_registry_switch_to(APP_ID_RADIO);
  assert(app_registry_get_active()==APP_ID_RADIO&&mock_restarts==0);
- // All registered pages, including hidden setup and launcher. Double must
+
+  // All registered pages, including hidden setup and launcher. Double must
  // never forward a click to a confirmation dialog or toggle Xiaozhi twice.
+ // 语音应用例外:双击留给应用自身(复制动作),不再唤起小智。
  for(int id=0;id<APP_ID_COUNT;++id){
+  if(id==APP_ID_VOICE)continue;
   app_registry_switch_to(static_cast<passport_app_id_t>(id));
   const int a=starts,b=stops,c=keys,requests=conversation_requests;
   app_registry_dispatch_key(BSP_BTN_OK,BTN_EVT_DOUBLE,600);
@@ -198,6 +201,16 @@ int main(){
   assert(starts==a+(id!=APP_ID_XIAOZHI)&&stops==b+(id!=APP_ID_XIAOZHI));
   assert(mock_screens.size()==1&&conversation_requests==requests+1);
  }
+ // 语音应用内双击:停留原应用,不发起会话。
+ app_registry_switch_to(APP_ID_VOICE);
+ {
+  const int requests=conversation_requests;
+  app_registry_dispatch_key(BSP_BTN_OK,BTN_EVT_DOUBLE,600);
+  assert(app_registry_get_active()==APP_ID_VOICE);
+  assert(conversation_requests==requests);
+ }
+
+ 
  // Full producer->registry path: a sleeping screen wakes on the first press,
  // then enters Xiaozhi on the second without delivering either click.
  app_registry_switch_to(APP_ID_HOME);
