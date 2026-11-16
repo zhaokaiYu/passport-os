@@ -362,6 +362,9 @@ void voice_app_on_key(uint8_t btn, app_btn_event_t event, uint16_t mv) {
     case BTN_EVT_LONG_UP:
         ev.type = APP_EV_KEY_LONG_UP;
         break;
+    case BTN_EVT_DOUBLE:                    // ← 新增
+        ev.type = APP_EV_KEY_DOUBLE;
+        break;
     default:
         return;
     }
