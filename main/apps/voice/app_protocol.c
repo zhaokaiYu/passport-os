@@ -206,10 +206,6 @@ size_t app_protocol_voice_end(char *buf, size_t cap) {
 }
 
 size_t app_protocol_device_status(char *buf, size_t cap, uint32_t drop_count) {
-    const char *a = "enter";
-    if (action == APP_KEY_CLEAR)      a = "clear";
-    else if (action == APP_KEY_PASTE) a = "paste";
-    else if (action == APP_KEY_COPY)  a = "copy";
     cJSON *o = cJSON_CreateObject();
     cJSON_AddStringToObject(o, "event", "status");
     cJSON_AddNumberToObject(o, "drop", (double)drop_count);
