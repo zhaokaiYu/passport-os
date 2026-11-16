@@ -494,7 +494,7 @@ void app_registry_dispatch_key(uint8_t btn, app_btn_event_t event, uint16_t mv) 
 
     // DOUBLE is already resolved from two physical short presses. It may
     // include the waking press and must not be swallowed with its tail.
-    const bool xiaozhi_shortcut = btn == BSP_BTN_OK && event == BTN_EVT_DOUBLE;
+    const bool xiaozhi_shortcut = btn == BSP_BTN_OK && event == BTN_EVT_DOUBLE && s_active_id.load() != APP_ID_VOICE;
     if (xiaozhi_shortcut) s_wake_gate = {};
     if (wake_gate_consume(&s_wake_gate, event == BTN_EVT_PRESS)) return;
 
