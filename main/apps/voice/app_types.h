@@ -13,6 +13,8 @@ extern "C" {
 typedef enum {
     APP_KEY_ENTER = 0,   // 输入框回车(提交)
     APP_KEY_CLEAR,       // 清空输入框全部文字
+    APP_KEY_PASTE,       // 新增：Ctrl+V
+    APP_KEY_COPY,        // 新增：Ctrl+C
 } app_key_action_t;
 
 // ---------------- 状态 ----------------
