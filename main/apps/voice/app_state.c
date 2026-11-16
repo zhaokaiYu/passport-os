@@ -100,6 +100,15 @@ void app_state_reduce(app_state_t *s, const app_event_t *ev, uint64_t now, app_a
             s->toast_until_ms = now + 1500;
         }
         break;
+    case APP_EV_KEY_DOUBLE:
+        if (ev->u.key.btn == APP_BTN_OK && s->state == APP_ST_READY &&
+            s->link_up && s->pc_ready) {
+            out[(*n)++] = (app_action_t){.type = APP_ACT_SEND_KEY_ACTION,
+                .u.key_action.action = APP_KEY_COPY};
+            snprintf(s->toast, sizeof(s->toast), "已复制");
+            s->toast_until_ms = now + 1500;
+        }
+        break;
     case APP_EV_AUDIO_ERROR:
         end_voice(s, now, true, out, n);
         snprintf(s->toast, sizeof(s->toast), "麦克风异常，请重试");
