@@ -70,8 +70,18 @@ void app_state_reduce(app_state_t *s, const app_event_t *ev, uint64_t now, app_a
         }
         break;
     case APP_EV_KEY_RELEASE:
-    case APP_EV_KEY_LONG_UP:
         if (ev->u.key.btn == APP_BTN_UP) end_voice(s, now, false, out, n);
+        break;
+    case APP_EV_KEY_LONG_UP:
+        if (ev->u.key.btn == APP_BTN_UP) {
+            end_voice(s, now, false, out, n);
+        } else if (ev->u.key.btn == APP_BTN_DOWN && s->state == APP_ST_READY &&
+                   s->link_up && s->pc_ready) {
+            out[(*n)++] = (app_action_t){.type = APP_ACT_SEND_KEY_ACTION,
+                .u.key_action.action = APP_KEY_COPY};
+            snprintf(s->toast, sizeof(s->toast), "已复制");
+            s->toast_until_ms = now + 1500;
+        }
         break;
     case APP_EV_KEY_CLICK:
         // CLICK is emitted once on a short press. Never send while still recording
@@ -82,10 +92,8 @@ void app_state_reduce(app_state_t *s, const app_event_t *ev, uint64_t now, app_a
                 .u.key_action.action = APP_KEY_ENTER};
             snprintf(s->toast, sizeof(s->toast), "已发送回车");
             s->toast_until_ms = now + 1500;
-        }
-        // 新增
-        if (ev->u.key.btn == APP_BTN_OK && s->state == APP_ST_READY &&
-            s->link_up && s->pc_ready) {
+        }else if (ev->u.key.btn == APP_BTN_OK && s->state == APP_ST_READY &&
+                   s->link_up && s->pc_ready) {
             out[(*n)++] = (app_action_t){.type = APP_ACT_SEND_KEY_ACTION,
                 .u.key_action.action = APP_KEY_PASTE};
             snprintf(s->toast, sizeof(s->toast), "已粘贴");
